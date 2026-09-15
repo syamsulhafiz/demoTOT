@@ -1,0 +1,49 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Demo1.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class DemoController : ControllerBase
+    {
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok("Hello from DemoController!");
+        }
+        [HttpPost]
+        public IActionResult Post([FromBody] string value)
+        {
+            return Ok($"You posted: {value}");
+        }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            return Ok($"You deleted item with id: {id}");
+        }
+
+        /// <summary>
+        /// Partial update
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [HttpPatch]
+        public IActionResult Patch([FromBody] string value)
+        {
+            return Ok($"You patched: {value}");
+        }
+
+        /// <summary>
+        /// Full update
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] string value)
+        {
+            return Ok($"You put: {value} with id: {id}");
+        }
+    }
+}
