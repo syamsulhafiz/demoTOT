@@ -22,24 +22,29 @@ public class ApiKeyAuthenticationHandler
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // Nama header boleh dikonfigurasi; lalai: X-API-KEY
         var headerName =
             _configuration["ApiKey:HeaderName"] ?? "X-API-KEY";
 
+        // API key sebenar diambil dari konfigurasi
         var configuredApiKey =
             _configuration["ApiKey:Key"];
 
+        // Gagal jika header API key tiada
         if (!Request.Headers.TryGetValue(headerName, out var apiKey))
         {
             return Task.FromResult(
                 AuthenticateResult.Fail("API Key tidak dijumpai."));
         }
 
+        // Gagal jika API key tidak sepadan
         if (apiKey != configuredApiKey)
         {
             return Task.FromResult(
                 AuthenticateResult.Fail("API Key tidak sah."));
         }
 
+        // Bina claims identity untuk klien API key yang sah
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, "TrustedClient"),
@@ -56,6 +61,7 @@ public class ApiKeyAuthenticationHandler
             principal,
             Scheme.Name);
 
+        // Berjaya authenticate
         return Task.FromResult(
             AuthenticateResult.Success(ticket));
     }

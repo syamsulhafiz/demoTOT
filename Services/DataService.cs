@@ -15,6 +15,7 @@ namespace Demo1.Services
 
         public async Task<UserQuestionLogDTO?> GetByIdAsync(int id)
         {
+            // Ambil rekod tunggal tanpa tracking untuk prestasi baca
             var entity =
                 await _context.UserQuestionLogs
                     .AsNoTracking()
@@ -31,12 +32,12 @@ namespace Demo1.Services
             };
         }
 
-        public async Task<
-            OffsetPagingResponseDto<UserQuestionLogDTO>>
+        public async Task<OffsetPagingResponseDto<UserQuestionLogDTO>>
             GetByOffsetAsync(
                 int page,
                 int pageSize)
         {
+            // Validasi asas input paging
             if (page < 1)
                 page = 1;
 
@@ -46,11 +47,13 @@ namespace Demo1.Services
             if (pageSize > 100)
                 pageSize = 100;
 
+            // Kira jumlah rekod keseluruhan
             var totalRecords =
                 await _context.UserQuestionLogs
                     .AsNoTracking()
                     .CountAsync();
 
+            // Ambil data halaman semasa ikut turutan terbaru dahulu
             var data =
                 await _context.UserQuestionLogs
                     .AsNoTracking()
@@ -67,23 +70,19 @@ namespace Demo1.Services
                     })
                     .ToListAsync();
 
+            // Pulangkan respons paging lengkap
             return new OffsetPagingResponseDto<UserQuestionLogDTO>
             {
                 Page = page,
-
                 PageSize = pageSize,
-
                 TotalRecords = totalRecords,
-
                 TotalPages =
                     (int)Math.Ceiling(
                         totalRecords /
                         (double)pageSize),
-
                 Data = data
             };
         }
-
 
         public async Task<
             KeysetPagingResponseDto<UserQuestionLogDTO>>
@@ -91,17 +90,20 @@ namespace Demo1.Services
                 int? lastId,
                 int pageSize)
         {
+            // Validasi saiz halaman
             if (pageSize < 1)
                 pageSize = 20;
 
             if (pageSize > 100)
                 pageSize = 100;
 
+            // Mulakan query asas
             var query =
                 _context.UserQuestionLogs
                     .AsNoTracking()
                     .AsQueryable();
 
+            // Jika lastId diberi, ambil rekod yang lebih lama (id lebih kecil)
             if (lastId.HasValue)
             {
                 query =
@@ -109,6 +111,7 @@ namespace Demo1.Services
                         x => x.Id < lastId.Value);
             }
 
+            // Ambil satu batch data
             var data =
                 await query
                     .OrderByDescending(x => x.Id)
@@ -123,6 +126,7 @@ namespace Demo1.Services
                     })
                     .ToListAsync();
 
+            // Tentukan penanda (cursor) untuk batch seterusnya
             var nextLastId =
                 data.Count > 0
                     ? data.Last().Id
@@ -131,11 +135,8 @@ namespace Demo1.Services
             return new KeysetPagingResponseDto<UserQuestionLogDTO>
             {
                 PageSize = pageSize,
-
                 NextLastId = nextLastId,
-
                 HasMore = data.Count == pageSize,
-
                 Data = data
             };
         }

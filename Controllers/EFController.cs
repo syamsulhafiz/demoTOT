@@ -36,21 +36,22 @@ namespace Demo1.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Dapatkan senarai log soalan pengguna secara berhalaman (offset paging).
+        /// </summary>
+        /// <param name="page">Nombor halaman bermula dari 1.</param>
+        /// <param name="pageSize">Bilangan rekod bagi setiap halaman.</param>
+        /// <returns>Senarai log soalan pengguna.</returns>
+        /// <response code="200">Permintaan berjaya.</response>
+        /// <response code="400">Parameter tidak sah.</response>
         [HttpGet("offset")]
-        [AllowAnonymous]
-        public async Task<
-            ActionResult<
-                OffsetPagingResponseDto<UserQuestionLogDTO>>>
-            GetByOffset(
-                int page = 1,
-                int pageSize = 20)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<OffsetPagingResponseDto<UserQuestionLogDTO>>> GetByOffset(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
-            var result =
-                await _dataService
-                    .GetByOffsetAsync(
-                        page,
-                        pageSize);
-
+            var result = await _dataService.GetByOffsetAsync(page, pageSize);
             return Ok(result);
         }
 

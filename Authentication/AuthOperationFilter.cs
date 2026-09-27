@@ -11,6 +11,7 @@ namespace Demo1.Authentication
             OpenApiOperation operation,
             OperationFilterContext context)
         {
+            // Ambil semua atribut [Authorize] pada method + controller
             var authorizeAttributes =
                 context.MethodInfo
                     .GetCustomAttributes(true)
@@ -24,6 +25,7 @@ namespace Demo1.Authentication
                     .OfType<AuthorizeAttribute>()
                 ?? []);
 
+            // Jika [AllowAnonymous], buang keperluan security di Swagger
             var allowAnonymous =
                 context.MethodInfo
                     .GetCustomAttributes(true)
@@ -36,9 +38,8 @@ namespace Demo1.Authentication
                 return;
             }
 
-
             // =============================================
-            // Explicit API Key authentication
+            // Endpoint yang minta API Key secara eksplisit
             // =============================================
 
             var apiKeyRequired =
@@ -54,16 +55,12 @@ namespace Demo1.Authentication
             if (apiKeyRequired)
             {
                 operation.Security.Clear();
-
-                operation.Security.Add(
-                    CreateRequirement("ApiKey"));
-
+                operation.Security.Add(CreateRequirement("ApiKey"));
                 return;
             }
 
-
             // =============================================
-            // Explicit JWT authentication
+            // Endpoint yang minta JWT secara eksplisit
             // =============================================
 
             var jwtRequired =
@@ -74,42 +71,31 @@ namespace Demo1.Authentication
                             .Any(
                                 s =>
                                     s.Trim() ==
-                                    JwtBearerDefaults
-                                        .AuthenticationScheme)
+                                    JwtBearerDefaults.AuthenticationScheme)
                         == true);
 
             if (jwtRequired)
             {
                 operation.Security.Clear();
-
-                operation.Security.Add(
-                    CreateRequirement("Bearer"));
-
+                operation.Security.Add(CreateRequirement("Bearer"));
                 return;
             }
 
-
             // =============================================
-            // Policy-based authentication
-            // Policies in this app use JWT
+            // Endpoint berasaskan policy
+            // Dalam aplikasi ini, policy menggunakan JWT
             // =============================================
 
             if (authorizeAttributes.Any(
-                    x =>
-                        !string.IsNullOrWhiteSpace(
-                            x.Policy)))
+                    x => !string.IsNullOrWhiteSpace(x.Policy)))
             {
                 operation.Security.Clear();
-
-                operation.Security.Add(
-                    CreateRequirement("Bearer"));
+                operation.Security.Add(CreateRequirement("Bearer"));
             }
         }
 
-
         private static OpenApiSecurityRequirement
-            CreateRequirement(
-                string scheme)
+            CreateRequirement(string scheme)
         {
             return new OpenApiSecurityRequirement
             {
@@ -119,10 +105,7 @@ namespace Demo1.Authentication
                         Reference =
                             new OpenApiReference
                             {
-                                Type =
-                                    ReferenceType
-                                        .SecurityScheme,
-
+                                Type = ReferenceType.SecurityScheme,
                                 Id = scheme
                             }
                     },

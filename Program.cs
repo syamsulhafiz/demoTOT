@@ -14,18 +14,18 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // =====================================================
-// Controllers
+// Pendaftaran Controller   
 // =====================================================
 
 builder.Services.AddControllers();
 
-
 // =====================================================
-// Swagger / OpenAPI
+// Konfigurasi Swagger / OpenAPI
 // =====================================================
 
 builder.Services.AddSwaggerGen(options =>
 {
+    // Muatkan fail XML comments untuk dipaparkan dalam Swagger UI
     var xmlFilename =
         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 
@@ -40,7 +40,7 @@ builder.Services.AddSwaggerGen(options =>
     }
 
     // -------------------------------------------------
-    // API Key
+    // Definisi keselamatan API Key
     // -------------------------------------------------
 
     options.AddSecurityDefinition(
@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(options =>
         });
 
     // -------------------------------------------------
-    // JWT Bearer
+    // Definisi keselamatan JWT Bearer
     // -------------------------------------------------
 
     options.AddSecurityDefinition(
@@ -75,8 +75,8 @@ builder.Services.AddSwaggerGen(options =>
         });
 
     // -------------------------------------------------
-    // Bearer = default security requirement in Swagger
-    // Matches our JWT fallback policy
+    // Keperluan keselamatan lalai dalam Swagger:
+    // gunakan skema Bearer (selari dengan fallback policy JWT)
     // -------------------------------------------------
 
     options.AddSecurityRequirement(
@@ -100,15 +100,14 @@ builder.Services.AddSwaggerGen(options =>
         });
 
     // -------------------------------------------------
-    // Override security per endpoint
+    // Benarkan override skema auth mengikut endpoint
     // -------------------------------------------------
 
     options.OperationFilter<AuthOperationFilter>();
 });
 
-
 // =====================================================
-// Configuration
+// Ambil konfigurasi aplikasi
 // =====================================================
 
 var jwtKey =
@@ -132,15 +131,14 @@ var connectionString =
     ?? throw new InvalidOperationException(
         "DefaultConnection is missing.");
 
-
 // =====================================================
-// Authentication
+// Konfigurasi Authentication
 // =====================================================
 
 builder.Services
     .AddAuthentication(options =>
     {
-        // Default authentication = JWT
+        // Skema auth lalai ialah JWT
         options.DefaultAuthenticateScheme =
             JwtBearerDefaults.AuthenticationScheme;
 
@@ -152,7 +150,7 @@ builder.Services
     })
 
     // -------------------------------------------------
-    // API Key authentication
+    // Tambah skema API Key
     // -------------------------------------------------
 
     .AddScheme<
@@ -162,7 +160,7 @@ builder.Services
             options => { })
 
     // -------------------------------------------------
-    // JWT authentication
+    // Tambah skema JWT
     // -------------------------------------------------
 
     .AddJwtBearer(
@@ -188,7 +186,7 @@ builder.Services
                 };
 
             // =============================================
-            // JWT Diagnostics
+            // Diagnostik JWT (untuk tujuan debug)
             // =============================================
 
             options.Events = new JwtBearerEvents
@@ -261,23 +259,18 @@ builder.Services
             };
         });
 
-
 // =====================================================
-// Authorization
+// Konfigurasi Authorization
 // =====================================================
 
 builder.Services.AddAuthorization(options =>
 {
     // -------------------------------------------------
-    // Fallback Policy
-    //
-    // Semua endpoint require JWT secara default.
-    //
-    // Untuk public endpoint:
-    // [AllowAnonymous]
-    //
-    // Untuk API Key:
-    // [Authorize(AuthenticationSchemes = "ApiKey")]
+    // Fallback Policy:
+    // Semua endpoint perlukan JWT secara lalai.
+    // Guna [AllowAnonymous] untuk endpoint awam.
+    // Guna [Authorize(AuthenticationSchemes = "ApiKey")]
+    // untuk endpoint API Key.
     // -------------------------------------------------
 
     options.FallbackPolicy =
@@ -287,10 +280,9 @@ builder.Services.AddAuthorization(options =>
             .RequireAuthenticatedUser()
             .Build();
 
-
     // -------------------------------------------------
-    // ProfileRead
-    // Requires JWT + scope=profile.read
+    // Policy: ProfileRead
+    // Syarat: JWT + scope=profile.read
     // -------------------------------------------------
 
     options.AddPolicy(
@@ -300,18 +292,15 @@ builder.Services.AddAuthorization(options =>
             policy
                 .AddAuthenticationSchemes(
                     JwtBearerDefaults.AuthenticationScheme)
-
                 .RequireAuthenticatedUser()
-
                 .RequireClaim(
                     "scope",
                     "profile.read");
         });
 
-
     // -------------------------------------------------
-    // AdminOnly
-    // Requires JWT + role=Admin
+    // Policy: AdminOnly
+    // Syarat: JWT + role=Admin
     // -------------------------------------------------
 
     options.AddPolicy(
@@ -321,16 +310,13 @@ builder.Services.AddAuthorization(options =>
             policy
                 .AddAuthenticationSchemes(
                     JwtBearerDefaults.AuthenticationScheme)
-
                 .RequireAuthenticatedUser()
-
                 .RequireRole("Admin");
         });
 });
 
-
 // =====================================================
-// Rate Limiting
+// Konfigurasi Rate Limiting
 // =====================================================
 
 builder.Services.AddRateLimiter(options =>
@@ -340,6 +326,7 @@ builder.Services.AddRateLimiter(options =>
             .Create<HttpContext, string>(
                 httpContext =>
                 {
+                    // Partisi limiter berdasarkan alamat IP klien
                     var clientIp =
                         httpContext
                             .Connection
@@ -355,29 +342,21 @@ builder.Services.AddRateLimiter(options =>
                                 new FixedWindowRateLimiterOptions
                                 {
                                     PermitLimit = 10,
-
-                                    Window =
-                                        TimeSpan
-                                            .FromMinutes(1),
-
+                                    Window = TimeSpan.FromMinutes(1),
                                     QueueLimit = 0,
-
                                     QueueProcessingOrder =
-                                        QueueProcessingOrder
-                                            .OldestFirst,
-
-                                    AutoReplenishment =
-                                        true
+                                        QueueProcessingOrder.OldestFirst,
+                                    AutoReplenishment = true
                                 });
                 });
 
+    // Kod status bila rate limit melebihi had
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;
 });
 
-
 // =====================================================
-// Entity Framework
+// Entity Framework DbContext
 // =====================================================
 
 builder.Services.AddDbContext<TestDbContext>(
@@ -385,25 +364,22 @@ builder.Services.AddDbContext<TestDbContext>(
         options.UseSqlServer(
             connectionString));
 
-
 // =====================================================
-// Application Services
+// Pendaftaran servis aplikasi
 // =====================================================
 
 builder.Services.AddScoped<
     IDataService,
     DataService>();
 
-
 // =====================================================
-// Build Application
+// Bina aplikasi
 // =====================================================
 
 var app = builder.Build();
 
-
 // =====================================================
-// Swagger
+// Middleware Swagger
 // =====================================================
 
 if (app.Environment.IsDevelopment())
@@ -421,35 +397,21 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
 // =====================================================
-// HTTP Pipeline
+// HTTP Request Pipeline
 // =====================================================
 
 app.UseHttpsRedirection();
 
-
-// -----------------------------------------------------
-// Rate limit before authentication
-// so abusive requests can be rejected earlier.
-// -----------------------------------------------------
-
+// Letak rate limiter sebelum authentication supaya
+// permintaan berlebihan boleh ditolak lebih awal.
 app.UseRateLimiter();
 
-
-// -----------------------------------------------------
-// Authentication BEFORE Authorization
-// -----------------------------------------------------
-
+// Urutan wajib: Authentication dahulu, kemudian Authorization.
 app.UseAuthentication();
-
 app.UseAuthorization();
 
-
-// -----------------------------------------------------
-// Controllers
-// -----------------------------------------------------
-
+// Peta endpoint controller.
 app.MapControllers();
 
 app.Run();
