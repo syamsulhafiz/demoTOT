@@ -55,7 +55,12 @@ namespace Demo1.Controllers
             return Ok(result);
         }
 
-
+        /// <summary>
+        /// Paging berdasarkan lastId (keyset paging) untuk mendapatkan senarai log soalan pengguna.
+        /// </summary>
+        /// <param name="lastId"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [HttpGet("keyset")]
         [AllowAnonymous]
         public async Task<

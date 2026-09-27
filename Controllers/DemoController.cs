@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static Demo1.DTO.SampleDemoDTO;
 
@@ -6,6 +7,7 @@ namespace Demo1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous] //Anonymous peringkat controller, bukan by endpoint. Jika endpoint ada [Authorize], ia akan override [AllowAnonymous] di peringkat controller.
     public class DemoController : ControllerBase
     {
         [HttpGet("GetData")]
