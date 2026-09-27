@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Demo1.DTO.SampleDemoDTO;
 
 namespace Demo1.Controllers
 {
@@ -7,15 +8,16 @@ namespace Demo1.Controllers
     [ApiController]
     public class DemoController : ControllerBase
     {
-        [HttpGet]
+        [HttpGet("GetData")]
         public IActionResult Get()
         {
             return Ok("Hello from DemoController!");
         }
         [HttpPost]
-        public IActionResult Post([FromBody] string value)
+        public IActionResult Post(SampleDemoRequest demoRequest)
         {
-            return Ok($"You posted: {value}");
+            var sampleResponse = new SampleDemoResponse { Message = demoRequest.Name };
+            return Ok(sampleResponse);
         }
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)

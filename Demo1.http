@@ -2,5 +2,8 @@
 
 GET {{Demo1_HostAddress}}/weatherforecast/
 Accept: application/json
-
 ###
+
+GET {{Demo1_HostAddress}}/API/Demo/GetData
+Accept: application/json
+

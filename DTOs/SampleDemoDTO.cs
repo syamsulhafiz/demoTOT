@@ -1,6 +1,6 @@
 ﻿namespace Demo1.DTO
 {
-    public class SampleDemo
+    public class SampleDemoDTO
     {
         public class SampleDemoRequest
         {
@@ -11,7 +11,7 @@
         public class SampleDemoResponse
         {
             public string Message { get; set; }
-            public DateTime Timestamp { get; set; }
+            public DateTime Timestamp { get; set; } = System.DateTime.Now;
         }
     }
 }
