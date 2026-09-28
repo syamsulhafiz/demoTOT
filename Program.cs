@@ -14,6 +14,36 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // =====================================================
+// Konfigurasi CORS
+// =====================================================
+
+// CORS (Cross-Origin Resource Sharing) digunakan untuk
+// membenarkan aplikasi dari domain / origin lain
+// membuat permintaan kepada API ini.
+//
+// Konfigurasi ini adalah untuk DEMO sahaja.
+//
+// AllowAnyOrigin  = Benarkan permintaan daripada mana-mana origin.
+// AllowAnyMethod  = Benarkan semua HTTP method seperti
+//                   GET, POST, PUT, PATCH dan DELETE.
+// AllowAnyHeader  = Benarkan semua HTTP header seperti
+//                   Authorization, Content-Type dan X-API-KEY.
+//
+// Untuk production, disarankan menghadkan origin tertentu
+// menggunakan .WithOrigins("https://domain-anda.com").
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
+// =====================================================
 // Pendaftaran Controller   
 // =====================================================
 
@@ -401,11 +431,19 @@ if (app.Environment.IsDevelopment())
 // HTTP Request Pipeline
 // =====================================================
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Letak rate limiter sebelum authentication supaya
 // permintaan berlebihan boleh ditolak lebih awal.
 app.UseRateLimiter();
+
+// Gunakan polisi CORS "AllowAll" yang telah didaftarkan.
+//
+// Middleware CORS diletakkan sebelum Authentication
+// dan Authorization supaya browser boleh membuat
+// CORS preflight request (OPTIONS) terlebih dahulu.
+
+app.UseCors("AllowAll");
 
 // Urutan wajib: Authentication dahulu, kemudian Authorization.
 app.UseAuthentication();
